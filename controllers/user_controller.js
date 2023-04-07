@@ -15,13 +15,14 @@ exports.post_fe = [
 		const metadata = {
 		  contentType: req.file.mimetype
 		};
-		uploadBytes(imageRef,req.file.buffer,metadata).then(() => {
+		uploadBytes(imageRef,req.file.buffer,metadata).then((snapshot) => {
 			console.log('Uploaded a blob or file!');
+			getDownloadURL(imageRef).then((url)=>{
+				console.log("url:",url);
+			});
 		}).catch((err) => {
 			return res.setStatus(400).json({error:err});
 		});
-		console.log(req.body);
-		console.log(req.file.filename);
 		return res.json({message:"File Uploaded Successfully"});
 	}
 ];

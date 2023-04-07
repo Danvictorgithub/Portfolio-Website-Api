@@ -1,40 +1,33 @@
-require("dotenv").config();
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const mongoose = require("mongoose");
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const cors = require('cors');
+
 //Firebase setup
 require('./configs/firebase-config.js');
+//MongoDB setup
+require('./configs/mongodb-config.js');
 
-const MONGODB_URI = process.env.MONGODB_URI;
-mongoose.set('strictQuery', false);
-mongoose.connect(MONGODB_URI, {useNewUrlParser:true, useUnifiedTopology:true});
-const db = mongoose.connection;
-db.on('error',console.error.bind(console, 'MongoDB Connection Error'));
-
+//App initializiation
 var app = express();
 
 // PassportJS Setup
 require('./authentication/passport');
+//Express REST API Middlewares
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 
 // Api Routes
-
-app.use(cors());
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
 // Express Middlewares
-
+app.use(cors());
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
