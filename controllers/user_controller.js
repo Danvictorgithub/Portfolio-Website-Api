@@ -10,14 +10,14 @@ exports.post_fe = [
 		if (req.fileValidationError) {
     		return res.status(400).json({ error: req.fileValidationError });
     	}
-		const storage = getStorage();
-		const imageRef = ref(storage, `feTech/${req.file.originalname}`);
+		const storage = getStorage(); // reference to google cloud storage firebase bucket
+		const imageRef = ref(storage, `feTech/${req.file.originalname}`); //referred to the location to which upload operator and download operator is used
 		const metadata = {
 		  contentType: req.file.mimetype
 		};
-		uploadBytes(imageRef,req.file.buffer,metadata).then((snapshot) => {
+		uploadBytes(imageRef,req.file.buffer,metadata).then(() => { //asynchronously uploads images
 			console.log('Uploaded a blob or file!');
-			getDownloadURL(imageRef).then((url)=>{
+			getDownloadURL(imageRef).then((url)=>{ //gets the img URL
 				console.log("url:",url);
 			});
 		}).catch((err) => {
