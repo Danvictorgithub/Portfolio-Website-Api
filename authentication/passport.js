@@ -39,10 +39,7 @@ const opts = {
 
 passport.use(new JWTStrategy(opts,(jwt_payload, cb) => {
 	// Passes entire user to query
-	return User.findOne(jwt_payload.user).exec((err,user)=> {
-		if (err) {
-			return cb(err);
-		}
+	return User.findOne(jwt_payload.user).then((user)=> {
 		return cb(null,user);
-	});
+	}).catch( err=> cb(err));
 }));
