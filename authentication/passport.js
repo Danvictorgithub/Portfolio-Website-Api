@@ -11,10 +11,7 @@ const User = require('../models/user');
 
 // Passport Strategy for Validating User Login Input
 passport.use(new LocalStrategy((username,password,cb)=> {
-	User.findOne({username:username}).exec((err,user)=>{
-		if (err) {
-			return cb(err);
-		}
+	User.findOne({username:username}).then((user)=>{
 		if (!user) {
 			return cb(null,false,{message:"Incorrect Username"});
 		}
@@ -29,6 +26,8 @@ passport.use(new LocalStrategy((username,password,cb)=> {
 				return cb(null,false,{message:"Incorrect Password"});
 			}
  		});
+	}).catch((err)=> {
+		return cb(err);
 	});
 }));
 

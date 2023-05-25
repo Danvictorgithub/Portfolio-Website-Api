@@ -3,8 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var Routes = require("./routes/routes.js");
 const cors = require('cors');
 
 //Firebase setup
@@ -24,8 +23,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Api Routes
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/api', Routes);
 // Express Middlewares
 app.use(cors());
 
