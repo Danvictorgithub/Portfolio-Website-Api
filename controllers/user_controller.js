@@ -4,11 +4,12 @@ const {
 	uploadBytes, 
 	getDownloadURL
 } = require("firebase/storage");
-const passport = require("passport");
 const User = require("../models/user.js");
+const FeTech = require("../models/frontEndTechnologies.js");
+const BeTech = require("../models/backEndTechnologies.js");
+const passport = require("passport");
 const bcrypt = require("bcryptjs");
 const {body,validationResult} = require("express-validator");
-const frontEndTech = require('../models/frontEndTechnologies.js'); 
 const jwt = require("jsonwebtoken");
 exports.login_POST = (req,res) => {
 	passport.authenticate('local',{session:false},(err,user,info) => {
@@ -99,6 +100,13 @@ class FirebaseImageOperator {
 }
 
 exports.get_fe = (req,res,next) => {
+	FeTech.find({})
+	.then(result => 
+		res.status(200).json({message:"Successful",FeTech:result})
+	)
+	.catch(err=> 
+		res.status(400).json({message:"Unexpected Error"})
+	);
 };
 exports.post_fe = [
 	processImageMiddleware,
@@ -112,8 +120,44 @@ exports.post_fe = [
 		const metadata = {
 		  contentType: req.file.mimetype
 		};
-		const firebaseImageOperator = new FirebaseImageOperator(imageRef,frontEndTech,req,res);
-		frontEndTech.findOne({name:req.body.name})
+		const firebaseImageOperator = new FirebaseImageOperator(imageRef,FeTech,req,res);
+		FeTech.findOne({name:req.body.name})
+			.then((result)=> {
+				if (result === null) {
+					firebaseImageOperator.upload(req.file.buffer,metadata);
+				}
+				else {
+					return res.status(400).json({message:"The name already exist in the database"});
+				}
+			})
+			.catch((err)=> {
+				return res.status(400).json({error:err});
+			});
+	}
+];
+exports.get_be = (req,res,next) => {
+	BeTech.find({})
+	.then(result => 
+		res.status(200).json({message:"Successful",FeTech:result})
+	)
+	.catch(err=> 
+		res.status(400).json({message:"Unexpected Error"})
+	);
+};
+exports.post_be = [
+	processImageMiddleware,
+	(req,res,next) => {
+		// checks if the file extension is valid image
+		if (req.fileValidationError) {
+    		return res.status(400).json({ error: req.fileValidationError });
+    	}
+		const storage = getStorage(); // reference to google cloud storage firebase bucket
+		const imageRef = ref(storage, `beTech/${req.file.originalname}`); //referred to the location to which upload operator and download operator is used
+		const metadata = {
+		  contentType: req.file.mimetype
+		};
+		const firebaseImageOperator = new FirebaseImageOperator(imageRef,BeTech,req,res);
+		BeTech.findOne({name:req.body.name})
 			.then((result)=> {
 				if (result === null) {
 					firebaseImageOperator.upload(req.file.buffer,metadata);
