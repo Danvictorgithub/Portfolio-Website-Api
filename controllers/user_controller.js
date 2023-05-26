@@ -7,6 +7,7 @@ const {
 const User = require("../models/user.js");
 const FeTech = require("../models/frontEndTechnologies.js");
 const BeTech = require("../models/backEndTechnologies.js");
+const workExp = require("../models/workExperience.js");
 const passport = require("passport");
 const bcrypt = require("bcryptjs");
 const {body,validationResult} = require("express-validator");
@@ -80,11 +81,11 @@ class FirebaseImageOperator {
 		uploadBytes(this.firebaseRef,fileBuffer,fileMetadata)
 			.then(()=> {
 				getDownloadURL(this.firebaseRef).then(url => {
-					const newfrontEndTech = new this.model({
+					const newTech = new this.model({
 						name:this.req.body.name,
 						imgLocation:url
 					});
-					newfrontEndTech
+					newTech
 						.save()
 						.then((document)=> {
 						console.log("Added new Front End Technologies: ",document.name);
@@ -98,7 +99,37 @@ class FirebaseImageOperator {
 			.catch(err => this.res.status(400).json({error:err}));
 	}
 }
-
+exports.get_we = (req,res,next) => {
+	workExp.find({})
+	.then(result => 
+		res.status(200).json({message:"Successful",WorkExp:result})
+	)
+	.catch(err=> 
+		res.status(400).json({message:"Unexpected Error"})
+	);
+}
+exports.post_we = [
+	body("positionName").trim().isLength({max:32}).withMessage("Position Name must be less than 32 characters").escape(),
+	body("companyName").trim().isLength({max:32}).withMessage("Company Name must be less than 32 characters").escape(),
+	body("startDate").trim().isLength({max:16}).withMessage("Start Date must be less than 16 characters").escape(),
+	body("endDate").trim().isLength({max:16}).withMessage("End Date must be less than 16 characters").escape(),
+	body("description").trim().isLength({max:256}).withMessage("Description must be less than 128 characteres").escape(),
+	(req,res) => {
+		const errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			return res.status(400).json({message:"Invalid Validation", errors:errors.array()});
+		}
+		const newExperience = new workExp({
+			positionName:req.body.positionName,
+			companyName:req.body.companyName,
+			startDate:req.body.startDate,
+			endDate:req.body.endDate,
+			description:req.body.description
+		});
+		newExperience.save();
+		return res.status(201).json({message:"Successfully Created a new Work Experience"});
+	}
+];
 exports.get_fe = (req,res,next) => {
 	FeTech.find({})
 	.then(result => 
@@ -138,7 +169,7 @@ exports.post_fe = [
 exports.get_be = (req,res,next) => {
 	BeTech.find({})
 	.then(result => 
-		res.status(200).json({message:"Successful",FeTech:result})
+		res.status(200).json({message:"Successful",BeTech:result})
 	)
 	.catch(err=> 
 		res.status(400).json({message:"Unexpected Error"})

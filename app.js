@@ -22,10 +22,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// Api Routes
-app.use('/api', Routes);
 // Express Middlewares
 app.use(cors());
+// Api Routes
+app.use('/api', Routes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
