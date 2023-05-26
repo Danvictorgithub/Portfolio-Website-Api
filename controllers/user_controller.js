@@ -8,6 +8,7 @@ const User = require("../models/user.js");
 const FeTech = require("../models/frontEndTechnologies.js");
 const BeTech = require("../models/backEndTechnologies.js");
 const workExp = require("../models/workExperience.js");
+const persProj = require("../models/personalProject.js");
 const passport = require("passport");
 const bcrypt = require("bcryptjs");
 const {body,validationResult} = require("express-validator");
@@ -200,5 +201,57 @@ exports.post_be = [
 			.catch((err)=> {
 				return res.status(400).json({error:err});
 			});
+	}
+];
+exports.get_pp = (req,res) => {
+	persProj.find({})
+	.then(result=>{
+		return res.status(201).json({message:"Successfully Collected Personal Projects",PersonalProjects:result});
+	})
+	.catch(error=> {
+		return res.status(400).json({message:"Unexpected Error"});
+	});
+}
+exports.post_pp = [
+	processImageMiddleware,
+	body('projectName').trim().isLength({max:64}).withMessage("Project Name must not exceed 64 characters").escape(),
+	body('tags.*').trim().isLength({max:32}).withMessage("Tags must not exceed 32 characters").escape(),
+	body('description').trim().isLength({max:1024}).withMessage("Description must not exceed 1024 characters").escape(),
+	body('projectLink').trim().isLength({max:256}).withMessage("Project Link must not exceed 256 characters"),
+	body('githubLink').trim().isLength({max:256}).withMessage("Github Link must not exceed 256 characters"),
+	(req,res)=> {
+		const errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			return res.status(400).json({message:"Validation Error",errors:errors.array()});
+		}
+		if (req.fileValidationError) {
+    		return res.status(400).json({ error: req.fileValidationError });
+    	}
+		persProj.findOne({projectName:req.body.projectName}).then((result)=> {
+			if (result !== null ) {
+				return res.status(400).json({message:"Personal Project Name already Exist"});
+			}
+			else {
+				const storage = getStorage(); // reference to google cloud storage firebase bucket
+				const imageRef = ref(storage, `persProj/${req.file.originalname}`); //referred to the location to which upload operator and download operator is used
+				const metadata = {
+				  contentType: req.file.mimetype
+				};
+				uploadBytes(imageRef,req.file.buffer,metadata).then(()=> {
+					getDownloadURL(imageRef).then(url => {
+					const newProject = new persProj({
+						projectName: req.body.projectName,
+						imgLocation:url,
+						tags:req.body.tags,
+						description:req.body.description,
+						projectLink:req.body.projectLink,
+						githubLink:req.body.githubLink
+					});
+					newProject.save();
+					return res.status(201).json({message:"Successfully created new Personal Project"});
+					})
+				}).catch(err=> res.status(400).json({message:"Unexpted Upload Error"}));
+			}
+		}).catch(error=> res.status(400).json({message:"Unexpected Error"}));
 	}
 ];

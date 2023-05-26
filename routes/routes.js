@@ -13,6 +13,8 @@ router.get("/feTech",user_controller.get_fe);
 router.post("/feTech/upload",passport.authenticate('jwt',{session:false}),user_controller.post_fe);
 router.get("/beTech",user_controller.get_be);
 router.post("/beTech/upload",passport.authenticate('jwt',{session:false}),user_controller.post_be);
+router.get("/persProj",user_controller.get_pp);
+router.post("/persProj/upload",passport.authenticate('jwt',{session:false}),user_controller.post_pp);
 router.all("*",(req,res)=> {
 	res.status(400).json({message:"Invalid API Request"});
 });
